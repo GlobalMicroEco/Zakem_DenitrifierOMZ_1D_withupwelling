@@ -14,16 +14,14 @@ using DataFrames
 fsave = "out_addW" #fsave = "missing" #use this instead to not save if on, then output isn't saved
 
 # input file for IC
-#folder = "/Users/zakem/Documents/ModelCode/WaterColumn_Julia/addDIN/toXin_020223/"
 folder = ""
-#finput = "out_addDIN_20230306.nc" #3 yr 1d
 finput = "out_addDIN_20230320_1256.nc" #3 yrs with kappa to 1e-4 from 5e-5
 finput = "out_addW_20230830_1903.nc" #1 yr with kappa back to 5e-5 from the above 3 yr
 #OR
 #finput = "newIC" #if this is on, then don't load a file for input and specify IC below
 
 # Things vary from run to run
-tt = 365*3#0 # days -- run time (days)
+tt = 1#365*3#0 # days -- run time (days)
 nrec = 100 # number of timepoints to record (e.g., if nrec=1, only save the last time point)
 
 ## Xin: some choices
@@ -181,7 +179,7 @@ include("model_addW.jl")
 paras1 = paras(tt, nrec, H, dz, np, nb, nhets, nz, nn, nd, pIC, bIC, zIC, nIC, dIC, oIC,
                 umax_p, K_pn, m_lp, m_qp, CM, y_d, y_n, y_o, ftoNO3_anx, 
                 vmax_d, K_d, vmax_n, K_n, pcoef, m_lb, m_qb,
-                g_max, K_g, γ, m_lz, m_qz, prob_generate_d, kappa_z, wd, fsave, Light, TempFun,
+                g_max, K_g, γ, m_lz, m_qz, prob_generate_d, kappa_z, w, wd, fsave, Light, TempFun,
                 K_I, ngrid, GrM,
                 e_o, koverh, o2sat, t_o2relax, o2_deep)
 

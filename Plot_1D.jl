@@ -14,6 +14,7 @@ folder = ""
 #folder = "/Users/xinsun/Dropbox/!Carnegie/!Research/!Project_xin_N2O/Emily_1D_Julia/toXin_020223/"
 #result_file = "out_addDIN_20230125_1734.nc" #as above but with o2deep = 10. #good! still very small OMZ
 
+folder = "../Sun_DenitrifierOMZ_1D"
 result_file = "out_addDIN_20230302.nc" #1 d -- looks promising! got to keep OM
 result_file = "out_addDIN_20230302_0736.nc" #1 year -- still spinning up but looks promising! 
 result_file = "out_addDIN_20230302_0806.nc" #3 more years run FROM above 1 yr. goes away.
@@ -39,6 +40,7 @@ result_file = "out_addDIN_20230313_2122.nc" #3yrs: including Zoo O2 consumption!
 
 
 #Adding upwelling!
+folder = "../Sun_DenitrifierOMZ_1D/AddUpwelling/"
 result_file = "out_addDIN_20230320_1241.nc" #1 yr to test: looks OK! 
 result_file = "out_addDIN_20230320_1256.nc" #3 yrs with kappa to 1e-4 from 5e-5
 #revisiting in Aug 2023 (following upload to github)
@@ -49,6 +51,9 @@ result_file = "out_addW_20230830_1903.nc" #running for 1 year, back to mlz=20, k
 #result_file = "out_addW_20230830_1904.nc" #running for 1 year, back to mlz=20, kappa 5e-5, relax for all boxes (changed model file). nope -- no anoxic zone! 
 #result_file = "out_addW_20230830_1922.nc" #running 3 years FROM the good 1 yr run (out_addW_20230830_1903.nc) to see how things evolve
 
+#Change to working from github repository: Zakem_DenitrifierOMZ_1D_withupwelling (this folder)
+folder = ""
+result_file = "out_addW_20230830.nc"
 
 println(result_file)
 

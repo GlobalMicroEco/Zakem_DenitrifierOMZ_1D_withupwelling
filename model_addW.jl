@@ -53,7 +53,8 @@ struct paras
     m_qz::Array{Float64,1} # the quadratic mort of z
     prob_generate_d::Array{Float64, 1} # the distribution from the total gain of d to each d pool from mortality
     kappa_z::Array{Float64, 1} # the vertical eddy diffusivities
-    wd::Array{Float64, 2} # Sinking rate for POM
+    w::Array{Float64, 1} # Vertical velocity of water
+    wd::Array{Float64, 2} # Sinking rate for POM, INCLUDING vertical velocity already (wd = w + ws) 
     fsave::String  # saving file name
     Light::Array{Float64, 1} # Light (irradiance) W/m2
     TempFun::Array{Float64, 1} # Temperature fun
@@ -391,9 +392,10 @@ end
 #Physical equations and integration
 println("Loading physical functions: UPWIND and DIFF ...")
 # input p, b, z, n, d dims are nz X nC for a given time point
+# w is nz+1 x 1 
 # wd is nz+1 x nd
 #kappa_z are nz+1 X 1
-function UPWIND(c, wd, dz)
+function UPWIND(c, wd, dz) #written for wd, but also works for 1D w!
     c = vcat(zeros(2,size(c)[2]), c, zeros(2, size(c)[2]))
     positive_wd = (wd + abs.(wd))./2. 
     negative_wd = (wd - abs.(wd))./2.
