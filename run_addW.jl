@@ -1,3 +1,4 @@
+#8/10/23: need to add w to param struct (only wd there now)
 #3/1/23: EJZtinkering beings
 #2/2/23: version to send to Xin Sun
 #1/19/23: add DIN and N-cycling types
@@ -10,12 +11,14 @@ using DataFrames
 
 ######################################################################################
 # save file, date is au
-fsave = "out_addDIN" #fsave = "missing" #use this instead to not save if on, then output isn't saved
+fsave = "out_addW" #fsave = "missing" #use this instead to not save if on, then output isn't saved
 
 # input file for IC
-folder = "/Users/zakem/Documents/ModelCode/WaterColumn_Julia/addDIN/toXin_020223/"
+#folder = "/Users/zakem/Documents/ModelCode/WaterColumn_Julia/addDIN/toXin_020223/"
 folder = ""
-finput = "out_addDIN_20230306.nc" #3 yr 1d
+#finput = "out_addDIN_20230306.nc" #3 yr 1d
+finput = "out_addDIN_20230320_1256.nc" #3 yrs with kappa to 1e-4 from 5e-5
+finput = "out_addW_20230830_1903.nc" #1 yr with kappa back to 5e-5 from the above 3 yr
 #OR
 #finput = "newIC" #if this is on, then don't load a file for input and specify IC below
 
@@ -63,7 +66,7 @@ zf = [0 : dz : H;] #face depth array; 1 number longer than zc ( = total horizont
 # Vertical mixing
 mlz=20 # !m mixed layer lengthscale 
 # (this is the only parameter to worry about in Vertical mixing, change this number will change how well mixed or stratified the water column is)
-kappazmin=1e-4 # 5e-5 (small number = slower mixing) !m2/s --min mixing coefficient -value for most of the deep ocean (higher at top and bottom)
+kappazmin=5e-5 #(small number = slower mixing) !m2/s --min mixing coefficient -value for most of the deep ocean (higher at top and bottom)
 kappazmax=1e-2 # !m2/s --max mixing coefficient -value at top of mixed layer (as well as bottom boundary mixed layer)
 kappa_z=(kappazmax .* exp.(-zf/mlz) .+ kappazmin .+ kappazmax .* exp.((zf .- H) / 100.)) .* 3600 .* 24 
 kappa_z[1]=0
