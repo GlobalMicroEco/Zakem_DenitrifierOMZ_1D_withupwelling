@@ -15,8 +15,7 @@ fsave = "out_addW" #fsave = "missing" #use this instead to not save if on, then 
 
 # input file for IC
 folder = ""
-finput = "out_addDIN_20230320_1256.nc" #3 yrs with kappa to 1e-4 from 5e-5
-finput = "out_addW_20230830_1903.nc" #1 yr with kappa back to 5e-5 from the above 3 yr
+finput = "out_addW_20230830_2032.nc" #10 yrs total run (kappa = 5e-5)
 #OR
 #finput = "newIC" #if this is on, then don't load a file for input and specify IC below
 
@@ -162,12 +161,12 @@ end
 #dIC .= dIConepool #fills all columns with the one pool
 
 #then reset any desired IC (make sure initial O2 is always 1 everywhere even if we use the output O2 from a prevous run):
-oIC .= 1. # uM, set the O2 in each box the same.
+#oIC .= 1. # uM, set the O2 in each box the same.
 #bIC .= 0.01
 
 #reset N2 to see if it is still accumulating, or if it's just residual from spin-up
-nIC[:,5] .= 0.001 # µM set N2 low as initial condition to make sure N2 is not accumulate due to initial spin up.
-nIC[:,4] .= 0.001 # µM set N2O low as initial condition to make sure N2 is not accumulate due to initial spin up.
+#nIC[:,5] .= 0.001 # µM set N2 low as initial condition to make sure N2 is not accumulate due to initial spin up.
+#nIC[:,4] .= 0.001 # µM set N2O low as initial condition to make sure N2 is not accumulate due to initial spin up.
 
 #！reset denitrifiers to 1e-10
 #bIC[:,2:nhets] .= 1e-10

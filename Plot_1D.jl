@@ -54,6 +54,9 @@ result_file = "out_addW_20230830_1903.nc" #running for 1 year, back to mlz=20, k
 #Change to working from github repository: Zakem_DenitrifierOMZ_1D_withupwelling (this folder)
 folder = ""
 result_file = "out_addW_20230830.nc"
+result_file = "out_addW_20230830_1922.nc" #3y on top of 1y spinup/IC. Woo! Coming along! No NO2 accum yet, as expected
+result_file = "out_addW_20230830_2032.nc" #adding another 6 years for a 10y run total. cool! N2O peak at top and bottom! No NO2 accum.
+
 
 println(result_file)
 
@@ -94,29 +97,21 @@ H = ds["H"][:]
 dz = ds["dz"][:]
 zc = [dz/2:dz:(H-dz/2)]
 
-#plot profiles
-#for 1 for everyone:
-#plot([sum(p, dims = 2), sum(b, dims = 2), sum(z, dims = 2), sum(d, dims = 2), n], -zc; 
- #    layout = 5, 
-  #   linewidth = 2, 
-   #  legend = false, 
-    # title = ["Total P" "Total B" "Total Z" "Total D" "Total N"]
-#)
 
 ### plot stacked biomasses and nuts:
 gr(size = (1000, 600))
 ## start creating subplots
 pPZ = plot(sum(p, dims = 2), -zc, linecolor = "green", label = "Total P",  xlabel = "µM-BiomassN")
-plot!(sum(z, dims = 2), -zc, linecolor = "grey", label = "Total Z") 
-plot!(sum(b[:,1:nhets], dims = 2), -zc, linecolor = "black", label = "Total B")  # order of microbes: o, n1 to n6, aoa, nob, and anx 
+plot!(sum(z, dims = 2), -zc, linecolor = "Black", label = "Total Z") 
 plot!(b[:, 1], -zc, linecolor = "blue", label = "AerHet")
+plot!(sum(b[:,2:7],dims = 2), -zc, linecolor = "grey", label = "Total denit hets")  # order of microbes: o, n1 to n6, aoa, nob, and anx 
 
 pOM = plot(d, -zc, palette = :lightrainbow, label = ["OM1" "OM2"], xlabel = "µM")
 
 pDenit = plot(b[:,2:nhets]*1e3, -zc, palette = :tab10, label = ["NO3->NO2" "NO3->N2O" "NO3->N2" "NO2->N2O" "NO2->N2" "N2O->N2"], xlabel = "nM-BiomassN", legend=:right)
 
 pAerobe = plot(b[:, [8,9,10]]*1e3, -zc, palette = :lightrainbow, label = ["AOO" "NOB" "Anx"], xlabel = "nM-BiomassN", legend=:right) #, xlims = (0, 5)
-plot!(sum(b[:,2:7],dims = 2)*1e3, -zc, linecolor = "grey", label = "Total denit")  # order of microbes: o, n1 to n6, aoa, nob, and anx 
+plot!(sum(b[:,2:7],dims = 2)*1e3, -zc, linecolor = "grey", label = "Total denit hets")  # order of microbes: o, n1 to n6, aoa, nob, and anx 
 
 # DIN order: NH4, NO2, NO3, N2O, N2
 p3 = plot(o, -zc, linecolor = "black", label = "O2", legend=:bottomleft, xlabel = "µM") # OR: label = false
