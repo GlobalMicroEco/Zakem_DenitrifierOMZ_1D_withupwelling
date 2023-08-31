@@ -14,13 +14,13 @@ using DataFrames
 fsave = "out_addW" #fsave = "missing" #use this instead to not save if on, then output isn't saved
 
 # input file for IC
-folder = ""
-finput = "out_addW_20230830_2032.nc" #10 yrs total run (kappa = 5e-5)
+#folder = ""
+#finput = "out_addW_20230830_2032.nc" #10 yrs total run (kappa = 5e-5)
 #OR
-#finput = "newIC" #if this is on, then don't load a file for input and specify IC below
+finput = "newIC" #if this is on, then don't load a file for input and specify IC below
 
 # Things vary from run to run
-tt = 100#365*3#0 # days -- run time (days)
+tt = 365*3#0 # days -- run time (days)
 nrec = 100 # number of timepoints to record (e.g., if nrec=1, only save the last time point)
 
 ## Xin: some choices
@@ -74,6 +74,8 @@ kappa_z[end]=0
 using DelimitedFiles
 w2D = readdlm("w2000_10m.txt"); #vertical velocity from EJZ's 2D FLOW model
 w = w2D[90,:]; #peak upwelling velocity
+#Oxygenated: no vertical velocity
+w[:] .= 0.
 #using Plots
 #plot(w[1:end-1],-zc)
 
@@ -95,7 +97,7 @@ koverh = Kgast/dz #transfer just into first box!
 #eqmask(:)=0D0
 #eqmask(3:mlboxes+2)=1D0; !mask for air-sea equilibration
 #oxygen relaxation 
-o2_deep = 10. #mmol/m3 # assign O2 to the deep water
+o2_deep = 100. #mmol/m3 # assign O2 to the deep water
 t_o2relax = 0.01 # unit (1/day), = 0 to turn off (to supply O2 to all boxes via lateral fluxes)
 
 #air-sea exchange for N2 and N2O
@@ -161,12 +163,12 @@ end
 #dIC .= dIConepool #fills all columns with the one pool
 
 #then reset any desired IC (make sure initial O2 is always 1 everywhere even if we use the output O2 from a prevous run):
-#oIC .= 1. # uM, set the O2 in each box the same.
+#oIC .= 10. # uM, set the O2 in each box the same.
 #bIC .= 0.01
 
 #reset N2 to see if it is still accumulating, or if it's just residual from spin-up
 #nIC[:,5] .= 0.001 # µM set N2 low as initial condition to make sure N2 is not accumulate due to initial spin up.
-#nIC[:,4] .= 0.001 # µM set N2O low as initial condition to make sure N2 is not accumulate due to initial spin up.
+#nIC[:,4] .= 0.010 # µM set N2O low as initial condition to make sure N2 is not accumulate due to initial spin up.
 
 #！reset denitrifiers to 1e-10
 #bIC[:,2:nhets] .= 1e-10

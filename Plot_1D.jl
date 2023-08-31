@@ -56,6 +56,7 @@ folder = ""
 result_file = "out_addW_20230830.nc"
 result_file = "out_addW_20230830_1922.nc" #3y on top of 1y spinup/IC. Woo! Coming along! No NO2 accum yet, as expected
 result_file = "out_addW_20230830_2032.nc" #adding another 6 years for a 10y run total. cool! N2O peak at top and bottom! No NO2 accum.
+result_file = "out_addW_20230831_1143.nc" #oxygenated
 
 
 println(result_file)

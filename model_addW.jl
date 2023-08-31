@@ -222,12 +222,12 @@ println("Loading function: one_step_ecof ...")
 function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record locations of non zero in the sparse matrix (OM * het)
 
     #Transport, all are for the diffusion term of the function.
-    dpdt = DIFF(p, kappa_z, dz) .- UPWIND(p, w, dz)  
-    dbdt = DIFF(b, kappa_z, dz) .- UPWIND(b, w, dz)
-    dzdt = DIFF(z, kappa_z, dz) .- UPWIND(z, w, dz)
-    dndt = DIFF(n, kappa_z, dz) .- UPWIND(n, w, dz)
+    dpdt = DIFF(p, kappa_z, dz) #.- UPWIND(p, w, dz)  
+    dbdt = DIFF(b, kappa_z, dz) #.- UPWIND(b, w, dz)
+    dzdt = DIFF(z, kappa_z, dz) #.- UPWIND(z, w, dz)
+    dndt = DIFF(n, kappa_z, dz) #.- UPWIND(n, w, dz)
     dddt = DIFF(d, kappa_z, dz) .- UPWIND(d, wd, dz) # upwind is for sinking term
-    dodt = DIFF(o, kappa_z, dz) .- UPWIND(o, w, dz)
+    dodt = DIFF(o, kappa_z, dz) #.- UPWIND(o, w, dz)
 
     d_gain_total = zeros(params.number_box) # collect OM and then distribute into diff OM pools
 
