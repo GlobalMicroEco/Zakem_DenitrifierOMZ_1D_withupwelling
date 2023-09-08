@@ -30,7 +30,7 @@ y_o = zeros(nb) #oxygen
 #(Xin updated using Gibbs based yields with step penalty but nor has no penalty)
 y_d[:,1] .= 0.22 #0.2 #aerobe--keep it low, 0.2 or 0.3
 penalty = 0.9
-y_d[:,2] .= 0.15 #y_d[:,1]*penalty #NO3 to NO2 
+y_d[:,2] .= 0.15 #test change #y_d[:,1]*penalty #NO3 to NO2 
 y_d[:,3] .= 0.09 #y_d[:,1]*penalty #NO3 to N2O 
 y_d[:,4] .= 0.07 #y_d[:,1]*penalty #NO3 to N2 
 y_d[:,5] .= 0.2 #y_d[:,1]*penalty #NO2 to N2O
