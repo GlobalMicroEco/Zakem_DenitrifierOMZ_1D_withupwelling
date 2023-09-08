@@ -26,37 +26,36 @@ y_d = zeros(nd,nb) #organic matter
 y_n = zeros(nn,nb) #inorganic nitrogen: NH4, NO2, NO3, N2O, N2
 y_o = zeros(nb) #oxygen
 
-#Organic matter yields for hets 
-#(Xin updated using Gibbs based yields with step penalty but nor has no penalty)
-y_d[:,1] .= 0.22 #0.2 #aerobe--keep it low, 0.2 or 0.3
-penalty = 0.9
-y_d[:,2] .= 0.15 #test change #y_d[:,1]*penalty #NO3 to NO2 
-y_d[:,3] .= 0.09 #y_d[:,1]*penalty #NO3 to N2O 
-y_d[:,4] .= 0.07 #y_d[:,1]*penalty #NO3 to N2 
-y_d[:,5] .= 0.2 #y_d[:,1]*penalty #NO2 to N2O
-y_d[:,6] .= 0.12 #y_d[:,1]*penalty #NO2 to N2
-y_d[:,7] .= 0.3 #y_d[:,1]*penalty #N2O to N2
+#Organic matter yields for hets (Xin updated 09/2023, P=0.16)
+y_d[:,1] .= 0.218 #0.2 #aerobe--keep it low, 0.2 or 0.3
+#penalty = 0.9
+y_d[:,2] .= 0.150 #y_d[:,1]*penalty #NO3 to NO2 
+y_d[:,3] .= 0.148 #y_d[:,1]*penalty #NO3 to N2O 
+y_d[:,4] .= 0.138 #y_d[:,1]*penalty #NO3 to N2 
+y_d[:,5] .= 0.201 #y_d[:,1]*penalty #NO2 to N2O
+y_d[:,6] .= 0.197 #y_d[:,1]*penalty #NO2 to N2
+y_d[:,7] .= 0.298 #y_d[:,1]*penalty #N2O to N2
 
-#Anaerobic heterotroph yields on DIN (Xin updated) 
+#Anaerobic heterotroph yields on DIN (Xin updated 09/2023, P=0.16) 
 # N2O and N2 are in the unit of N
-y_n[3,2] = 0.039 #NO3 to NO2 
-y_n[3,3] = 0.078 #NO3 to N2O 
-y_n[3,4] = 0.098 #NO3 to N2 
-y_n[2,5] = 0.039 #NO2 to N2O 
-y_n[2,6] = 0.059 #NO2 to N2
-y_n[4,7] = 0.020 #N2O to N2
+y_n[3,2] = 0.011 #0.039 #NO3 to NO2 
+y_n[3,3] = 0.023 #0.078 #NO3 to N2O 
+y_n[3,4] = 0.026 #0.098 #NO3 to N2 
+y_n[2,5] = 0.016 #0.039 #NO2 to N2O 
+y_n[2,6] = 0.024 #0.059 #NO2 to N2
+y_n[4,7] = 0.013 #0.020 #N2O to N2
 
-#AOA and NOB yields (Xin updated):
+#AOA and NOB yields (Xin updated 09/2023):
 y_n[1, nhets + 1] = 0.0245 # AOA: #mol B/mol NH4 (Bayer et al. 2022; Zakem et al. 2022)
 y_n[2, nhets + 2] = 0.0126 # NOB: mol B/mol NO2 (Bayer et al. 2022)
 
-#Anammox yields and excretion factor (Xin updated)
+#Anammox yields and excretion factor (Xin updated 09/2023)
 y_n[1, nhets + 3] = 1. ./ 75 #mol B/mol NH4 (Lotti et al. 2014 Water Research)
 y_n[2, nhets + 3] = 1. ./ 89 #mol B/mol NO2 (Lotti et al. 2014 Water Research)
 ftoNO3_anx = 0.08 #percent of excreted DIN that goes to NO3 instead of N2
 
-#Oxygen yields for all aerobes (Xin updated)
-y_o[1] = 0.091 
+#Oxygen yields for all aerobes (Xin updated 09/2023)
+y_o[1] = 0.035 #0.091 
 y_o[nhets + 1] = 0.018 # nhets = 7, # 8 is AOA
 y_o[nhets + 2] = 0.022 # nhets = 7, # 9 is NOB
 
