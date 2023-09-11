@@ -20,7 +20,7 @@ folder = ""
 finput = "newIC" #if this is on, then don't load a file for input and specify IC below
 
 # Things vary from run to run
-tt = 1#365*3#0 # days -- run time (days)
+tt = 365*10 #365*3#0 # days -- run time (days)
 nrec = 100 # number of timepoints to record (e.g., if nrec=1, only save the last time point)
 
 ## Xin: some choices
