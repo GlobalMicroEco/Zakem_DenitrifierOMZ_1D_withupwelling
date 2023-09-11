@@ -9,11 +9,10 @@ using DataFrames
 default(show = true)
 
 #read nc data
-folder = "/Users/xinsun/Dropbox/!Carnegie/!Research/Xin_Zakem_DenitrifierOMZ_1D_withupwelling/"
-result_file = "out_addW_20230908.nc"
+result_file = "out_addW_20230830_2032.nc" #"out_addW_20230908.nc"
 println(result_file)
 
-ds = NCDataset(folder*result_file)
+ds = NCDataset(result_file)
 
 #just end point
 p = ds["p"][:,:,end]
@@ -103,7 +102,7 @@ plot(pOM, pPZ, pAerobe, pDenit, pOxy, pDIN, p5, pN2O,
 basename = replace(result_file, ".nc" => "")
 basename = replace(basename, "out_addW_" => "")
 # change this custom text for figure name
-custom_text = "_NairseaN2Oamm_diffK_60y=run30y_from0907_1051" #"_NairseaN2Oamm_diffK_20y=run10y_from09061504"
+custom_text = "_diffK_run10yfromNewIC" #"_NairseaN2Oamm_diffK_20y=run10y_from09061504"
 figure_name = "Fig_$basename$custom_text"
 # save
 png("$figure_name.png") 
