@@ -324,6 +324,9 @@ function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record loca
     dndt[:,k] += -b[:,j] .* mu ./ params.y_n[k,j]
     dndt[:,k+1] += b[:,j] .* mu .* (1. / params.y_n[k,j] - 1.)
     dodt += -b[:,j] .* mu ./ params.y_o[j]
+    # Xin add(09/2023): N2O production from ammonia 
+    dndt[:,4] += (0.002 ./max.(0.0685, dodt) .+ 0.0008) .* max.(0, b[:,j] .* mu .* (1. / params.y_n[k,j] - 1.)) #(Ji et al., 2018)
+ 
 
     #NOO
     j = params.nhets + 2 #which b?
