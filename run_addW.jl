@@ -25,7 +25,7 @@ nrec = 100 # number of timepoints to record (e.g., if nrec=1, only save the last
 
 ## Xin: some choices
 #if use different K_n values, use 1, if want same K_n, use anything that is not 1
-diffks_n = 0 
+diffks_n = 1 
 
 #if let OM1 be DOM, use 1, if other than 1, then two POMs.
 DOM1 = 0
