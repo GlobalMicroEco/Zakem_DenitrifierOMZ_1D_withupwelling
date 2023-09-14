@@ -18,7 +18,7 @@ prob_generate_d[:] .= pdfx/sum(pdfx)
 
 
 # Sinking rate for POM (particulate organic matter)
-ws = 5*ones(nd)#10*ones(nd) # !m/day --sinking speed of POM (Particulate organic matter) 
+ws = 8*ones(nd) # !m/day --sinking speed of POM (Particulate organic matter) 
 # ths is how to define one OM to dissolved:
 
 # Xin_let 90% of OM be DOM, 10% be POM
