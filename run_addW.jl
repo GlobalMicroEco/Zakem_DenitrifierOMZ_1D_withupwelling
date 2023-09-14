@@ -15,9 +15,9 @@ fsave = "out_addW" #fsave = "missing" #use this instead to not save if on, then 
 
 # input file for IC
 folder = ""
-#finput = "out_addW_20230830_2032.nc" #10 yrs total run (kappa = 5e-5)
+finput = "out_addW_20230907_1051.nc" #30 yrs total run (kappa = 5e-5)
 #OR
-finput = "newIC" #if this is on, then don't load a file for input and specify IC below
+#finput = "newIC" #if this is on, then don't load a file for input and specify IC below
 
 # Things vary from run to run
 tt = 365*10 #365*3#0 # days -- run time (days)
