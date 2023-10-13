@@ -36,15 +36,19 @@ nd = size(d)[2]
 #plot time series given the depth of the water box 
 depth =7
 conc = nall[:,[1,2],:]
+fsave = string("Tplotat", depth)
+title = string("Inorganic matter time series at depth ", depth)
 
-plot_time(conc, depth, "Tplotat7", "Inorganic matter time series at depth 7")
+plot_time(conc, depth, fsave, title)
 
 
 #plot depth profiles given the time slice
-tslice = 155
+tslice = 1000
 conc = nall[:,[1],:]
+fsave = string("Vplotat", tslice)
+title = string("Inorganic matter vertical profile at time ", tslice)
 
-plot_depth(conc, tslice, "Vplotat155", "Inorganic matter vertical profile at time 155")
+plot_depth(conc, tslice, fsave, title)
 
 
 # plot w against time
