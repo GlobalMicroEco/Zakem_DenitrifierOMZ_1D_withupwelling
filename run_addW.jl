@@ -9,19 +9,25 @@
 using NCDatasets
 using DataFrames
 
+###########################################################################################################
+#load model including paras struct:
+#Liang: better compile the model up here, so you don't want to compile it every time you change the parameters.
+
+include("model_addW.jl")
+
 ######################################################################################
 # save file, date is au
-fsave = "out_addW" #fsave = "missing" #use this instead to not save if on, then output isn't saved
+fsave = "out_addW_test_newmodel1" #fsave = "missing" #use this instead to not save if on, then output isn't saved
 
 # input file for IC
 folder = ""
-finput = "out_addW_20230907_1051.nc" #30 yrs total run (kappa = 5e-5)
+finput = "newIC" #30 yrs total run (kappa = 5e-5)
 #OR
 #finput = "newIC" #if this is on, then don't load a file for input and specify IC below
 
 # Things vary from run to run
-tt = 365*10 #365*3#0 # days -- run time (days)
-nrec = 100 # number of timepoints to record (e.g., if nrec=1, only save the last time point)
+tt = 365*3 #365*3#0 # days -- run time (days)
+nrec = 365*3 # number of timepoints to record (e.g., if nrec=1, only save the last time point)
 
 ## Xin: some choices
 #if use different K_n values, use 1, if want same K_n, use anything that is not 1
@@ -73,7 +79,8 @@ kappa_z[end]=0
 #Vertical velocity
 using DelimitedFiles
 w2D = readdlm("w2000_10m.txt"); #vertical velocity from EJZ's 2D FLOW model
-w = w2D[90,:]; #peak upwelling velocity
+no_box = Int(H / dz) + 1
+w = w2D[90,1:no_box]; #peak upwelling velocity
 #using Plots
 #plot(w[1:end-1],-zc)
 
@@ -170,17 +177,23 @@ end
 
 #！reset denitrifiers to 1e-10
 #bIC[:,2:nhets] .= 1e-10
-###########################################################################################################
-#load model including paras struct:
 
-include("model_addW.jl")
+######## Mixing ########
+mix_depthbox = 150 # the number of the mixed layer (m)
+mix_period = 50
+mix_burning = 100 
+mix_n = [1,2] 
+mix_om = []
+
+
 
 paras1 = paras(tt, nrec, H, dz, np, nb, nhets, nz, nn, nd, pIC, bIC, zIC, nIC, dIC, oIC,
                 umax_p, K_pn, m_lp, m_qp, CM, y_d, y_n, y_o, ftoNO3_anx, 
                 vmax_d, K_d, vmax_n, K_n, pcoef, m_lb, m_qb,
                 g_max, K_g, γ, m_lz, m_qz, prob_generate_d, kappa_z, w, wd, fsave, Light, TempFun,
                 K_I, ngrid, GrM,
-                e_o, koverh, o2sat, t_o2relax, o2_deep)
+                e_o, koverh, o2sat, t_o2relax, o2_deep,
+                mix_depthbox, mix_period, mix_burning, mix_n, mix_om)
 
 ###########################################################################################################
 #run model and save into fsave_*date*.nc:

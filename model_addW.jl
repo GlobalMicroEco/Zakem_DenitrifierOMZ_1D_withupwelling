@@ -66,6 +66,11 @@ struct paras
     o2sat::Float64
     t_o2relax::Float64
     o2_deep::Float64
+    mix_depthbox::Int64 # mixing from the first box to mix_depthbox 
+    mix_period::Int64 # mixing occurs every mix_period time unit
+    mix_burning::Int64 # mixing starts after mix_burning time unit. If mix_burning > tt, no mixing would occur. 
+    mix_n::Array{Int64, 1} # mixing which inorganic matter pools
+    mix_om::Array{Int64, 1} # mixing which organic matter pools
 end
 
 
@@ -175,6 +180,29 @@ function run_npzdb(params)
        track_d_temp .+= (track_dddt1 .+ 2 .* track_dddt2 .+ 2 .* track_dddt3 .+ track_dddt4) .* (dt / 6)
        track_o_temp .+= (track_dodt1 .+ 2 .* track_dodt2 .+ 2 .* track_dodt3 .+ track_dodt4) .* (dt / 6)
         
+       #####################################
+        #Mixing. If mix_burning > tt, no mixing would occur.
+       if t>Int(params.mix_burning / dt) - 1
+            actual_mixing_depth = minimum( [params.mix_depthbox, params.number_box] ) # if the depth is larger than the number of boxes, then the depth is the number of boxes
+           if mod(t - Int(params.mix_burning / dt), Int(params.mix_period/dt))==0 
+                if length(params.mix_n) > 0
+                    for ini in params.mix_n
+                        mean_ni = sum(track_n_temp[1:actual_mixing_depth,ini]) / actual_mixing_depth # sum of the total ni in the mixed layer
+                        track_n_temp[1:actual_mixing_depth,ini] .= mean_ni # assign the mean ni to the mixed layer
+                    end
+                end
+                
+                if length(params.mix_om) > 0
+                    for omi in params.mix_om
+                        mean_omi = sum(track_d_temp[1:actual_mixing_depth,omi]) / actual_mixing_depth # sum of the total omi in the mixed layer
+                        track_d_temp[1:actual_mixing_depth,omi] .= mean_omi # assign the mean omi to the mixed layer
+                    end
+                end
+           end
+        end
+        ########################################
+
+        # Recording sim results
         if mod(t, trec)==0
             j = Int(t÷trec + 1)
             t_id = t.*dt
