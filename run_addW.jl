@@ -179,7 +179,7 @@ end
 #bIC[:,2:nhets] .= 1e-10
 
 ######## Mixing ########
-mix_depthbox = 150 # the number of the mixed layer (m)
+mix_depthbox = 150 # the number of the mixed layer (boxes)
 mix_period = 50
 mix_burning = 100 
 mix_n = [1,2] 
