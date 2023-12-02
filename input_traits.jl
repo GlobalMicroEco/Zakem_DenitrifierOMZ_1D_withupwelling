@@ -28,7 +28,7 @@ y_o = zeros(nb) #oxygen
 
 #Organic matter yields for hets (Xin updated 09/2023, P=0.16)
 y_d[:,1] .= 0.218 #0.2 #aerobe--keep it low, 0.2 or 0.3
-#penalty = 0.9
+
 y_d[:,2] .= 0.150 #y_d[:,1]*penalty #NO3 to NO2 
 y_d[:,3] .= 0.148 #y_d[:,1]*penalty #NO3 to N2O 
 y_d[:,4] .= 0.138 #y_d[:,1]*penalty #NO3 to N2 
@@ -52,7 +52,7 @@ y_n[2, nhets + 2] = 0.0126 # NOB: mol B/mol NO2 (Bayer et al. 2022)
 #Anammox yields and excretion factor (Xin updated 09/2023)
 y_n[1, nhets + 3] = 1. ./ 75 #mol B/mol NH4 (Lotti et al. 2014 Water Research)
 y_n[2, nhets + 3] = 1. ./ 89 #mol B/mol NO2 (Lotti et al. 2014 Water Research)
-ftoNO3_anx = 0.08 #percent of excreted DIN that goes to NO3 instead of N2
+ftoNO3_anx = 0.08 #percent of excreted DIN that goes to NO3 instead of N2 (Lotti et al. 2014 Water Research)
 
 #Oxygen yields for all aerobes (Xin updated 09/2023)
 y_o[1] = 0.035 #0.091 
