@@ -324,6 +324,9 @@ function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record loca
     dndt[:,k] += -b[:,j] .* mu ./ params.y_n[k,j]
     dndt[:,k+1] += b[:,j] .* mu .* (1. / params.y_n[k,j] - 1.)
     dodt += -b[:,j] .* mu ./ params.y_o[j]
+    # Xin add(09/2023): N2O production from ammonia 
+    dndt[:,4] += (0.002 ./max.(0.0685, dodt) .+ 0.0008) .* max.(0, b[:,j] .* mu .* (1. / params.y_n[k,j] - 1.)) #(Ji et al., 2018)
+ 
 
     #NOO
     j = params.nhets + 2 #which b?
@@ -379,11 +382,15 @@ function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record loca
     #split accumulated OM into nd pools according to probability of generation, now it is 50%, 50%
     dddt += d_gain_total .* transpose(prob_generate_d)
 
-    #oxygen
+    ##oxygen
     #dodt[1:params.mlboxes] += params.koverh.*(params.o2sat .- o[1:params.mlboxes]) # ! (may need to change with Emily) oxygen input from air-sea
     dodt[1] += params.koverh.*(params.o2sat .- o[1]) #update to r
     #dodt += params.t_o2relax.*(params.o2_deep .- o) #O2 relaxation via lateral flux, not only to the bottom box, but to all boxes
     dodt[end] += params.t_o2relax.*(params.o2_deep .- o[end]) #O2 relaxation via lateral flux, only to the bottom box.
+    ##Xin add(09/2023): N2O and N2
+    dndt[1,4] += params.koverh.*(0.0122 .- dndt[1,4])#N2O in the 1st box (i.e., surface)
+    dndt[1,5] += params.koverh.*(385.7*2 .- dndt[1,5])#N2 in the 1st box (i.e., surface)
+    
     return dpdt, dbdt, dzdt, dndt, dddt, dodt
 end
 

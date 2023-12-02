@@ -15,17 +15,17 @@ fsave = "out_addW" #fsave = "missing" #use this instead to not save if on, then 
 
 # input file for IC
 folder = ""
-finput = "out_addW_20230830_2032.nc" #10 yrs total run (kappa = 5e-5)
+finput = "out_addW_20230907_1051.nc" #30 yrs total run (kappa = 5e-5)
 #OR
 #finput = "newIC" #if this is on, then don't load a file for input and specify IC below
 
 # Things vary from run to run
-tt = 1#365*3#0 # days -- run time (days)
+tt = 365*10 #365*3#0 # days -- run time (days)
 nrec = 100 # number of timepoints to record (e.g., if nrec=1, only save the last time point)
 
 ## Xin: some choices
 #if use different K_n values, use 1, if want same K_n, use anything that is not 1
-diffks_n = 0 
+diffks_n = 1 
 
 #if let OM1 be DOM, use 1, if other than 1, then two POMs.
 DOM1 = 0
