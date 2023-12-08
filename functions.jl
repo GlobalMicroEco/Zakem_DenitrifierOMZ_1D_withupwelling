@@ -1,123 +1,66 @@
-#2/2/23: version to send to Xin Sun
-using Printf
-using Dates
-using NCDatasets
-using SparseArrays, LinearAlgebra
-
-println("Starting EJZ mod version...")
-
-#set subnormals to zero to avoid slowdown
-#this way, don't have to cap b and d at a lower limit
-set_zero_subnormals(true)
-
-#make a Composite Type using "struct" to organize parameters
-# the order is important! make sure the order is the same as in the last part of the run file
-# set up below if it is an array or a number, if not match the structure, give errors
-struct paras
-    tt::Int64 # days -- run time
-    nrec::Float64 
-    H::Int64  # the total depth of the sea
-    dz::Int64  # the height of the box, a parcel of water
-    np::Int64 # the number of the phytoplankton
-    nb::Int64 # the number of the bacteria
-    nhets::Int64 # the number of heterotrophic bacteria 
-    nz::Int64 # the number of the zooplankton
-    nn::Int64 # the number of the inorganic matter pools
-    nd::Int64 # the number of the organic matter pools
-    pIC::Array{Float64,2} # the initial condition for the np p for all boxes at time 0
-    bIC::Array{Float64,2} # the initial condition for the nb b for all boxes at time 0
-    zIC::Array{Float64,2} # the initial condition for the nz z for all boxes at time 0
-    nIC::Array{Float64,2} # the initial condition for the nn n for all boxes at time 0
-    dIC::Array{Float64,2} # the initial condition for the nd d for all boxes at time 0
-    oIC::Array{Float64,2} # the initial condition for the nd d for all boxes at time 0
-    umax_p::Array{Float64,1} # the max growth rate of p 
-    K_pn::Array{Float64,1} # the half saturating rate for each p feeding on n (nutrient)
-    m_lp::Array{Float64,1} # the linear mort of p
-    m_qp::Array{Float64,1} # the quadratic mort of p
-    CM::Array{Float64,2} # Consumption matrix: nd X nb
-    y_d::Array{Float64,2} # the yield rate of bacteria j on d i
-    y_n::Array{Float64,2} # the yield rate of bacteria j on n i
-    y_o::Array{Float64,1} # the yield rate of bacteria j on oxygen
-    ftoNO3_anx::Float64 #fraction of anammox excretion that goes to N2 instead of NO3
-    vmax_d::Array{Float64,2} #max uptake rate of bacteria j on d i
-    K_d::Array{Float64,2} #half sat of bacteria j on d i
-    vmax_n::Array{Float64,2} #max uptake rate of bacteria j on n i
-    K_n::Array{Float64,2} #half sat of bacteria j on n i
-    pcoef::Array{Float64,1} #max uptake rate of bacteria j on oxygen
-    m_lb::Array{Float64,1} # the linear mort of b
-    m_qb::Array{Float64,1} # the quadratic mort of b
-    g_max::Array{Float64,1} # the max grazing rate of z
-    K_g::Array{Float64,1} # the half saturation rate of z
-    γ::Array{Float64,1} # the fraction of assimilation for z 
-    m_lz::Array{Float64,1} # the linear mort of z
-    m_qz::Array{Float64,1} # the quadratic mort of z
-    prob_generate_d::Array{Float64, 1} # the distribution from the total gain of d to each d pool from mortality
-    kappa_z::Array{Float64, 1} # the vertical eddy diffusivities
-    w::Array{Float64, 1} # Vertical velocity of water
-    wd::Array{Float64, 2} # Sinking rate for POM, INCLUDING vertical velocity already (wd = w + ws) 
-    fsave::String  # saving file name
-    Light::Array{Float64, 1} # Light (irradiance) W/m2
-    TempFun::Array{Float64, 1} # Temperature fun
-    K_I::Array{Float64, 1} # Half-sat rate of light
-    number_box::Int64 # number of boxes at depth
-    GrM::Array{Float64, 2} # Grazing matrix: nz x np+nb
-    e_o::Float64
-    koverh::Float64
-    o2sat::Float64
-    t_o2relax::Float64
-    o2_deep::Float64
-end
-
-
-# model
+###################################################################
+# Main model timestepping code 
+###################################################################
+#
+# Imports parameter values
+# Initializes output matrixes
+# Integrated model forward in time
+#
 println("Loading function: run_npzdb")
 function run_npzdb(params)
-    @printf("np = %5.0f, nb = %5.0f, nz = %5.0f, nn = %5.0f, nd = %5.0f, T = %5.0f \n", params.np, params.nb, params.nz, params.nn,  params.nd, params.tt)
-    open("jlog.txt","w") do f
-        write(f,@sprintf("np = %5.0f, nb = %5.0f, nz = %5.0f, nn = %5.0f, nd = %5.0f, T = %5.0f \n", params.np, params.nb, params.nz, params.nn,  params.nd, params.tt))
+    # Import parameter values
+    println("Importing parameters")
+    @printf("np = %5.0f, nb = %5.0f, nz = %5.0f, nn = %5.0f, nd = %5.0f, T = %5.0f \n", 
+             params.np,  params.nb,  params.nz,  params.nn,  params.nd,  params.tt)
+    
+    # Initialize log file
+    open("out/jlog.txt","w") do f
+        write(f,@sprintf("np = %5.0f, nb = %5.0f, nz = %5.0f, nn = %5.0f, nd = %5.0f, T = %5.0f \n", 
+                          params.np,  params.nb,  params.nz,  params.nn,  params.nd,  params.tt))
     end
     tst = now()
-    if params.fsave == "missing"
-    else
-        #Starting time and saving location
 
+    # Start output file
+    if params.fsave == "missing"
+        # Do nothing
+    else
+        # Starting time and saving location
         fsaven = string(params.fsave,"_", Dates.format(tst, "yyyymmdd"), ".nc")
-        #fsaven = string(params.fsave,".nc")
         if isfile(fsaven) #if i do more than 1 in 1 day
             fsaven = string(params.fsave,"_",Dates.format(tst, "yyyymmdd_HHMM"), ".nc")
         end
         println("Will be saved as: ", fsaven)
     end
+
+    # Announce starting time
     println("Starting time: ", tst)
     println("Thread id: ", Threads.threadid() )
 
-    #Prep for integration
-
+    # Prep model for integration
     Cs = sparse(params.CM) # sparse matrix (most 0 in the matrix)
     (II, JJ, _) = findnz(Cs) #this gives the list of all "on" indices in the matrix
-    
-    #Gs = sparse(params.GrM)
-    #(IIg, JJg, _) = findnz(Gs) #this gives the list of all "on" indices in the grazing matrix
-
     println("CM[1:10,1:10]")
     for i=1:min(params.nd,10)
         println(params.CM[i,1:min(params.nb,10)])
     end
 
-    dt = 1e-3 # the length of one time step, per day.
+    # Get number of timesteps and output frequency
     nt = Int(params.tt/dt)
-    trec = nt÷params.nrec #frequency of recording
+    trec = nt÷params.nrec 
 
-    # tracking the dyanmics of p, b, z, n, d (collect data points, number = nrec)
+    # Initialize matrices to track tendencies over time
+    # This allows tracking the dyanmics of p, b, z, n, d
+    # 3D arrays, where i = numDepths, j = num of P/B/Z/N variants, and k = num timesteps)
     nrec1 = Int(params.nrec + 1)
-    track_p = Array{Float64, 3}(undef, params.number_box, params.np, nrec1) # no.box X no.species X time for p
-    track_b = Array{Float64, 3}(undef, params.number_box, params.nb, nrec1) # no.box X no.species X time for b
-    track_z = Array{Float64, 3}(undef, params.number_box, params.nz, nrec1) # no.box X no.species X time for z
-    track_n = Array{Float64, 3}(undef, params.number_box, params.nn, nrec1) # no.box X no.pools X time for n
-    track_d = Array{Float64, 3}(undef, params.number_box, params.nd, nrec1) # no.box X no.pools X time for d
-    track_o = Array{Float64, 3}(undef, params.number_box, 1, nrec1) # no.box X no.pools X time for d
+    track_p = Array{Float64, 3}(undef, params.number_box, params.np, nrec1)  
+    track_b = Array{Float64, 3}(undef, params.number_box, params.nb, nrec1) 
+    track_z = Array{Float64, 3}(undef, params.number_box, params.nz, nrec1)   
+    track_n = Array{Float64, 3}(undef, params.number_box, params.nn, nrec1)  
+    track_d = Array{Float64, 3}(undef, params.number_box, params.nd, nrec1)  
+    track_o = Array{Float64, 3}(undef, params.number_box, 1, nrec1)          
     track_time = Array{Float64,1}(undef, nrec1)   
- 
+
+    # Set initial conditions (hence why nrec1 = ncrec + 1)
     track_p[:,:,1] .= params.pIC
     track_b[:,:,1] .= params.bIC
     track_z[:,:,1] .= params.zIC
@@ -126,7 +69,7 @@ function run_npzdb(params)
     track_o[:,:,1] .= params.oIC
     track_time[1] = 0
 
-    #Initialize the variables, change with each time step
+    # Initialize the variables, change with each time step
     track_p_temp = copy(params.pIC) 
     track_b_temp = copy(params.bIC)
     track_z_temp = copy(params.zIC) 
@@ -134,13 +77,16 @@ function run_npzdb(params)
     track_d_temp = copy(params.dIC) 
     track_o_temp = copy(params.oIC) 
 
-##    # integrate over time loop
+    # Begin timestepping
+    println("Start timestepping")
     @time for t = 1:nt
-#   @time for t = 1:3
 
-        # Runge-Kutta 4th order, a way of solving differential equations, numerical solver
-       track_dpdt1, track_dbdt1, track_dzdt1, track_dndt1, track_dddt1, track_dodt1 = one_step_ecof(track_p_temp, track_b_temp, track_z_temp, track_n_temp, track_d_temp, track_o_temp, params, II, JJ)
-#
+       # Runge-Kutta 4th order, a way of solving differential equations, numerical solver
+       # First calculation
+       track_dpdt1, track_dbdt1, track_dzdt1, track_dndt1, track_dddt1, track_dodt1 = one_step_ecof(
+            track_p_temp, track_b_temp, track_z_temp, track_n_temp, track_d_temp, track_o_temp, params, II, JJ)
+
+       # Collect tendency over timestep
        track_p1 = track_p_temp .+ dt/2 .* track_dpdt1
        track_b1 = track_b_temp .+ dt/2 .* track_dbdt1
        track_z1 = track_z_temp .+ dt/2 .* track_dzdt1
@@ -148,8 +94,11 @@ function run_npzdb(params)
        track_d1 = track_d_temp .+ dt/2 .* track_dddt1
        track_o1 = track_o_temp .+ dt/2 .* track_dodt1
 
-       track_dpdt2, track_dbdt2, track_dzdt2, track_dndt2, track_dddt2, track_dodt2 = one_step_ecof(track_p1, track_b1, track_z1, track_n1, track_d1, track_o1, params, II, JJ)
+       # Second calculation
+       track_dpdt2, track_dbdt2, track_dzdt2, track_dndt2, track_dddt2, track_dodt2 = one_step_ecof(
+           track_p1, track_b1, track_z1, track_n1, track_d1, track_o1, params, II, JJ)
 
+       # Collect tendency over timestep
        track_p2 = track_p_temp .+ dt/2 .* track_dpdt2
        track_b2 = track_b_temp .+ dt/2 .* track_dbdt2
        track_z2 = track_z_temp .+ dt/2 .* track_dzdt2
@@ -157,8 +106,11 @@ function run_npzdb(params)
        track_d2 = track_d_temp .+ dt/2 .* track_dddt2
        track_o2 = track_o_temp .+ dt/2 .* track_dodt2
 
-       track_dpdt3, track_dbdt3, track_dzdt3, track_dndt3, track_dddt3, track_dodt3 = one_step_ecof(track_p2, track_b2, track_z2, track_n2, track_d2, track_o2, params, II, JJ)
+       # Third calculation
+       track_dpdt3, track_dbdt3, track_dzdt3, track_dndt3, track_dddt3, track_dodt3 = one_step_ecof(
+           track_p2, track_b2, track_z2, track_n2, track_d2, track_o2, params, II, JJ)
 
+       # Collect tendency over timestep
        track_p3 = track_p_temp .+ dt .* track_dpdt3
        track_b3 = track_b_temp .+ dt .* track_dbdt3
        track_z3 = track_z_temp .+ dt .* track_dzdt3
@@ -166,16 +118,20 @@ function run_npzdb(params)
        track_d3 = track_d_temp .+ dt .* track_dddt3
        track_o3 = track_o_temp .+ dt .* track_dodt3
 
-       track_dpdt4, track_dbdt4, track_dzdt4, track_dndt4, track_dddt4, track_dodt4 = one_step_ecof(track_p3, track_b3, track_z3, track_n3, track_d3, track_o3, params, II, JJ)
+       # Fourth calculation
+       track_dpdt4, track_dbdt4, track_dzdt4, track_dndt4, track_dddt4, track_dodt4 = one_step_ecof(
+           track_p3, track_b3, track_z3, track_n3, track_d3, track_o3, params, II, JJ)
 
+       # Apply Runge-Kutta formula to the 4 calculations
        track_p_temp .+= (track_dpdt1 .+ 2 .* track_dpdt2 .+ 2 .* track_dpdt3 .+ track_dpdt4) .* (dt / 6)
        track_b_temp .+= (track_dbdt1 .+ 2 .* track_dbdt2 .+ 2 .* track_dbdt3 .+ track_dbdt4) .* (dt / 6)
        track_z_temp .+= (track_dzdt1 .+ 2 .* track_dzdt2 .+ 2 .* track_dzdt3 .+ track_dzdt4) .* (dt / 6)
        track_n_temp .+= (track_dndt1 .+ 2 .* track_dndt2 .+ 2 .* track_dndt3 .+ track_dndt4) .* (dt / 6)
        track_d_temp .+= (track_dddt1 .+ 2 .* track_dddt2 .+ 2 .* track_dddt3 .+ track_dddt4) .* (dt / 6)
        track_o_temp .+= (track_dodt1 .+ 2 .* track_dodt2 .+ 2 .* track_dodt3 .+ track_dodt4) .* (dt / 6)
-        
-        if mod(t, trec)==0
+       
+       # If timestep belongs to number of output records, record the values
+       if mod(t, trec)==0
             j = Int(t÷trec + 1)
             t_id = t.*dt
             track_p[:,:,j] .= track_p_temp
@@ -186,42 +142,36 @@ function run_npzdb(params)
             track_o[:,:,j] .= track_o_temp
             track_time[j] = t_id 
 
-            @printf("Day %7.1f out of %5.0f = %4.0f%% done at %s \n", t_id, params.tt, t_id/params.tt*100, now())
-            open("jlog.txt","a") do f
+            # Announce recording of results (then record it in log file)
+            @printf("Day %7.1f out of %5.0f = %4.0f%% done at %s \n", 
+                t_id, params.tt, t_id/params.tt*100, now())
+            open("out/jlog.txt","a") do f
                 write(f,@sprintf("Day %7.1f out of %5.0f = %4.0f%% done at %s \n", t_id, params.tt, t_id/params.tt*100, now()))
             end
 
-            #Ensure conservation of total N. This simple summing works only because the height of all boxes is the same.
+            # Ensure conservation of total N. This simple summing works only because the height of all boxes is the same.
             println("Total N: ", sum(track_p_temp) + sum(track_b_temp) + sum(track_n_temp) + sum(track_d_temp) + sum(track_z_temp))
-
         end 
-
-    end #end time loop
-
+    end #end timestepping
     tfn = now() #finish time
     
-    #Write files--save after a loop for now. 
+    # Write files--save after a loop for now. 
     if params.fsave == "missing"
     else
         savetoNC(fsaven, track_p, track_b, track_z, track_n, track_d, track_o,  tst, tfn, params)
     end
-
     return track_p_temp, track_b_temp, track_z_temp, track_n_temp, track_d_temp, track_o_temp
-    
-
 end
 
-
-
 #################################################################################
-#Ecosystem equations and integration
-
-# input p, b, z, n, d 
-
-println("Loading function: one_step_ecof ...")
+# Microbial ecosystem model 
+#################################################################################
+#
+# inputs =  p, b, z, n, d 
+#
 function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record locations of non zero in the sparse matrix (OM * het)
 
-    #Transport, all are for the diffusion term of the function.
+    # Transport, all are for the diffusion term of the function.
     dpdt = DIFF(p, kappa_z, dz) .- UPWIND(p, w, dz)  
     dbdt = DIFF(b, kappa_z, dz) .- UPWIND(b, w, dz)
     dzdt = DIFF(z, kappa_z, dz) .- UPWIND(z, w, dz)
@@ -394,24 +344,9 @@ function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record loca
     return dpdt, dbdt, dzdt, dndt, dddt, dodt
 end
 
-
 #################################################################################
-#Physical equations and integration
-println("Loading physical functions: UPWIND and DIFF ...")
-# input p, b, z, n, d dims are nz X nC for a given time point
-# w is nz+1 x 1 
-# wd is nz+1 x nd
-#kappa_z are nz+1 X 1
-function UPWIND(c, wd, dz) #written for wd, but also works for 1D w!
-    c = vcat(zeros(2,size(c)[2]), c, zeros(2, size(c)[2]))
-    positive_wd = (wd + abs.(wd))./2. 
-    negative_wd = (wd - abs.(wd))./2.
-    Fu = positive_wd[2:end,:].*c[3:end-2,:] + negative_wd[2:end,:].*c[4:end-1,:]
-    Fd = positive_wd[1:end-1,:].*c[2:end-3,:] + negative_wd[1:end-1,:].*c[3:end-2,:]
-    adv = (Fu .- Fd)./dz 
-    return adv 
-end
-
+# Diffusion function 
+#################################################################################
 function DIFF(c, kappa_z, dz)
     c = vcat(transpose(zeros(size(c)[2])), c, transpose(zeros(size(c)[2])))
     kappa_z_len = size(kappa_z)[1]
@@ -422,8 +357,21 @@ function DIFF(c, kappa_z, dz)
 end
 
 #################################################################################
+# Upwind function 
+#################################################################################
+function UPWIND(c, wd, dz) #written for wd, but also works for 1D w!
+    c = vcat(zeros(2,size(c)[2]), c, zeros(2, size(c)[2]))
+    positive_wd = (wd + abs.(wd))./2. 
+    negative_wd = (wd - abs.(wd))./2.
+    Fu = positive_wd[2:end,:].*c[3:end-2,:] + negative_wd[2:end,:].*c[4:end-1,:]
+    Fd = positive_wd[1:end-1,:].*c[2:end-3,:] + negative_wd[1:end-1,:].*c[3:end-2,:]
+    adv = (Fu .- Fd)./dz 
+    return adv 
+end
 
-println("Loading function: savetoNC")
+#################################################################################
+# Netcdf writing function 
+#################################################################################
 function savetoNC(fsaven, p, b, z, n, d, o, tst, tfn, params)
 
     println("Saving to: ",fsaven)
