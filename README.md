@@ -9,7 +9,7 @@
 Requires the Julia programming language
 
 ## Updates
-* 12/2023 -- First commit of MicrOMZ
+* 12/07/23: Danny's first commit of MicrOMZ
 * 08/10/23: need to add w to param struct (only wd there now)
 * 12/07/23: DM - reorganized file structure (out, plots, data directories, etc.)
 * 08/10/23: need to add w to param struct (only wd there now)
@@ -24,11 +24,12 @@ Requires the Julia programming language
 #### Install necessary packages 
     Call 'getPkgs.jl' to install necessary Julia packages
     You should only need to call this once
-        include("getPkgs.jl")
+        > include("getPkgs.jl")
 #### Update the settings in the model 
     Edit 'settings.jl' to toggle user-specific settings (see below)
 #### Run the model
-        include("run_model.jl")
+    After toggling settings, startup Julia then run the following command
+        > include("run_model.jl")
 
 ## Code structure 
 #### settings.jl 
