@@ -11,8 +11,6 @@ Requires the Julia programming language
 ## Updates
 * 12/07/23: Danny's first commit of MicrOMZ
 * 08/10/23: need to add w to param struct (only wd there now)
-* 12/07/23: DM - reorganized file structure (out, plots, data directories, etc.)
-* 08/10/23: need to add w to param struct (only wd there now)
 * 03/01/23: EJZtinkering beings
 * 02/02/23: version to send to Xin Sun
 * 01/19/23: add DIN and N-cycling types
