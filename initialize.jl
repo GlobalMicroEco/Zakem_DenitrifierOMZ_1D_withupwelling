@@ -61,14 +61,18 @@ struct paras
     GrM::Array{Float64, 2}             # Grazing matrix: nz x np+nb
     e_o::Float64
     koverh::Float64
-    o2sat::Float64
-    t_o2relax::Float64
-    o2_deep::Float64
+    o2sat::Float64                     # Atmospheric O2 concentration
+    t_o2relax::Float64                 # Timescale of O2 relaxation
+    o2_obs::Array{Float64,2}           # WOA-18 O2 profile (0 - 2000)
+    t_no3relax::Float64                # Timescale of NO3 relaxation
+    no3_obs::Array{Float64,2}          # ETSP observations 
+    no2_obs::Array{Float64,2}          # ETSP observations
+    nh4_obs::Array{Float64,2}          # ETSP observations
+    n2o_obs::Array{Float64,2}          # ETSP observations
 end
 
 paras1 = paras(tt, nrec, H, dz, np, nb, nhets, nz, nn, nd, pIC, bIC, zIC, nIC, dIC, oIC,
-            umax_p, K_pn, m_lp, m_qp, CM, y_d, y_n, y_o, ftoNO3_anx, 
-            vmax_d, K_d, vmax_n, K_n, pcoef, m_lb, m_qb,
-            g_max, K_g, γ, m_lz, m_qz, prob_generate_d, kappa_z, w, wd, fsave, Light, TempFun,
-            K_I, ngrid, GrM,
-            e_o, koverh, o2sat, t_o2relax, o2_deep)
+            umax_p, K_pn, m_lp, m_qp, CM, y_d, y_n, y_o, ftoNO3_anx, vmax_d, K_d, vmax_n, 
+            K_n, pcoef, m_lb, m_qb, g_max, K_g, γ, m_lz, m_qz, prob_generate_d, kappa_z, 
+            w, wd, fsave, Light, TempFun, K_I, ngrid, GrM, e_o, 
+            koverh, o2sat, t_o2relax, o2_obs, t_no3relax, no3_obs, no2_obs, nh4_obs, n2o_obs)

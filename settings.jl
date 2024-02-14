@@ -8,18 +8,23 @@ folder = "out/"
 fsave  = "out_addW"                  
 # Set 'restart' file
 # Set to "newIC" if fresh restart is requested
-finput = "out_addW_20230907_1051.nc" 
+#finput = "out_addW_20230907_1051.nc" 
+finput = "newIC"
 
 ###################################################################
 # Runtime settings (+ number of timesteps to be output) 
 ###################################################################
 # Set run time (days)
-tt = 365*10 
+nyears = 1
+tt = 365*nyears 
 # Set number of timesteps to record
 # NOTE: Use 1 to only save the last timestep
 nrec = 100 
+nrec = 365 
+nrec = 73 
 # Set timestep (per day)
-dt = 1e-3 
+#dt = 1e-3 # 1000 tsteps per day 
+dt = 1e-2 # 100 tsteps per day
 
 ###################################################################
 # 1-D grid settings 
@@ -64,6 +69,15 @@ DOM1 = 0
 #################################################################
 # Set number of DIN pools (default = 5, corresponding to [NH4, NO2, NO3, N2O, N2]
 nn = 5 
+# Get observed profiles for IC
+no3_obs = readdlm("inputs/obs_NO3.txt")'
+n2o_obs = (readdlm("inputs/obs_N2O.txt")')/1000
+nh4_obs = readdlm("inputs/obs_NH4.txt")'
+no2_obs = readdlm("inputs/obs_NO2.txt")'
+# Get timescale of relaxation (1/day)
+# NOTE: Set to 0 to turn off
+t_no3relax = 0.01
+t_no3relax = 0
 
 #################################################################
 # Settings for physical environment 
@@ -99,10 +113,11 @@ o2sat = 212.1
 # Set gas transfer coefficient (kw, in meters/day)
 # NOTE: See Sarmiento & Gruber (2006) Table 3.3.2
 Kgast = 10/100*24 #m/d from 10 cm/hr
-# Set deep ocean oxygen (mmol/m3)
-o2_deep = 10
+# Get observed profile for IC
+o2_obs = readdlm("inputs/obs_O2.txt")'; 
 # Set timescale (1/day) for oxygen relaxation
 # NOTE: Set to 0 to turn off
 t_o2relax = 0.01
+t_o2relax = 0
 
 

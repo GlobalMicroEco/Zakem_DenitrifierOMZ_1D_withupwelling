@@ -46,36 +46,39 @@ function run_npzdb(params)
 
     # Get number of timesteps and output frequency
     nt = Int(params.tt/dt)
-    trec = nt÷params.nrec 
+    trec = nt/params.nrec 
 
     # Initialize matrices to track tendencies over time
     # This allows tracking the dyanmics of p, b, z, n, d
     # 3D arrays, where i = numDepths, j = num of P/B/Z/N variants, and k = num timesteps)
-    nrec1 = Int(params.nrec + 1)
-    track_p = Array{Float64, 3}(undef, params.number_box, params.np, nrec1)  
-    track_b = Array{Float64, 3}(undef, params.number_box, params.nb, nrec1) 
-    track_z = Array{Float64, 3}(undef, params.number_box, params.nz, nrec1)   
-    track_n = Array{Float64, 3}(undef, params.number_box, params.nn, nrec1)  
-    track_d = Array{Float64, 3}(undef, params.number_box, params.nd, nrec1)  
-    track_o = Array{Float64, 3}(undef, params.number_box, 1, nrec1)          
-    track_time = Array{Float64,1}(undef, nrec1)   
+    nrec1        = Int(params.nrec + 1)
+    track_p      = Array{Float64, 3}(undef, params.number_box, params.np, nrec1)  
+    track_b      = Array{Float64, 3}(undef, params.number_box, params.nb, nrec1) 
+    track_z      = Array{Float64, 3}(undef, params.number_box, params.nz, nrec1)   
+    track_n      = Array{Float64, 3}(undef, params.number_box, params.nn, nrec1)  
+    track_d      = Array{Float64, 3}(undef, params.number_box, params.nd, nrec1)  
+    track_o      = Array{Float64, 3}(undef, params.number_box, 1, nrec1)          
+    track_uptake = Array{Float64, 3}(undef, params.number_box, params.np, nrec1)
+    track_time   = Array{Float64,1}(undef, nrec1)   
 
     # Set initial conditions (hence why nrec1 = ncrec + 1)
-    track_p[:,:,1] .= params.pIC
-    track_b[:,:,1] .= params.bIC
-    track_z[:,:,1] .= params.zIC
-    track_n[:,:,1] .= params.nIC
-    track_d[:,:,1] .= params.dIC
-    track_o[:,:,1] .= params.oIC
+    track_p[:,:,1]      .= params.pIC
+    track_b[:,:,1]      .= params.bIC
+    track_z[:,:,1]      .= params.zIC
+    track_n[:,:,1]      .= params.nIC
+    track_d[:,:,1]      .= params.dIC
+    track_o[:,:,1]      .= params.oIC
+    track_uptake[:,:,1] .= 0
     track_time[1] = 0
 
     # Initialize the variables, change with each time step
-    track_p_temp = copy(params.pIC) 
-    track_b_temp = copy(params.bIC)
-    track_z_temp = copy(params.zIC) 
-    track_n_temp = copy(params.nIC) 
-    track_d_temp = copy(params.dIC) 
-    track_o_temp = copy(params.oIC) 
+    track_p_temp      = copy(params.pIC) 
+    track_b_temp      = copy(params.bIC)
+    track_z_temp      = copy(params.zIC) 
+    track_n_temp      = copy(params.nIC) 
+    track_d_temp      = copy(params.dIC) 
+    track_o_temp      = copy(params.oIC) 
+    track_uptake_temp = track_p_temp
 
     # Begin timestepping
     println("Start timestepping")
@@ -83,64 +86,69 @@ function run_npzdb(params)
 
        # Runge-Kutta 4th order, a way of solving differential equations, numerical solver
        # First calculation
-       track_dpdt1, track_dbdt1, track_dzdt1, track_dndt1, track_dddt1, track_dodt1 = one_step_ecof(
-            track_p_temp, track_b_temp, track_z_temp, track_n_temp, track_d_temp, track_o_temp, params, II, JJ)
+       track_dpdt1, track_dbdt1, track_dzdt1, track_dndt1, track_dddt1, track_dodt1, track_uptake1 = one_step_ecof(
+            track_p_temp, track_b_temp, track_z_temp, track_n_temp, track_d_temp, track_o_temp,  params, II, JJ)
 
        # Collect tendency over timestep
-       track_p1 = track_p_temp .+ dt/2 .* track_dpdt1
-       track_b1 = track_b_temp .+ dt/2 .* track_dbdt1
-       track_z1 = track_z_temp .+ dt/2 .* track_dzdt1
-       track_n1 = track_n_temp .+ dt/2 .* track_dndt1
-       track_d1 = track_d_temp .+ dt/2 .* track_dddt1
-       track_o1 = track_o_temp .+ dt/2 .* track_dodt1
+       track_p1      = track_p_temp      .+ dt/2 .* track_dpdt1
+       track_b1      = track_b_temp      .+ dt/2 .* track_dbdt1
+       track_z1      = track_z_temp      .+ dt/2 .* track_dzdt1
+       track_n1      = track_n_temp      .+ dt/2 .* track_dndt1
+       track_d1      = track_d_temp      .+ dt/2 .* track_dddt1
+       track_o1      = track_o_temp      .+ dt/2 .* track_dodt1
+       track_uptake1 = track_uptake_temp .+ dt/2 .* track_uptake1
 
        # Second calculation
-       track_dpdt2, track_dbdt2, track_dzdt2, track_dndt2, track_dddt2, track_dodt2 = one_step_ecof(
+       track_dpdt2, track_dbdt2, track_dzdt2, track_dndt2, track_dddt2, track_dodt2, track_uptake2 = one_step_ecof(
            track_p1, track_b1, track_z1, track_n1, track_d1, track_o1, params, II, JJ)
 
        # Collect tendency over timestep
-       track_p2 = track_p_temp .+ dt/2 .* track_dpdt2
-       track_b2 = track_b_temp .+ dt/2 .* track_dbdt2
-       track_z2 = track_z_temp .+ dt/2 .* track_dzdt2
-       track_n2 = track_n_temp .+ dt/2 .* track_dndt2
-       track_d2 = track_d_temp .+ dt/2 .* track_dddt2
-       track_o2 = track_o_temp .+ dt/2 .* track_dodt2
+       track_p2      = track_p_temp      .+ dt/2 .* track_dpdt2
+       track_b2      = track_b_temp      .+ dt/2 .* track_dbdt2
+       track_z2      = track_z_temp      .+ dt/2 .* track_dzdt2
+       track_n2      = track_n_temp      .+ dt/2 .* track_dndt2
+       track_d2      = track_d_temp      .+ dt/2 .* track_dddt2
+       track_o2      = track_o_temp      .+ dt/2 .* track_dodt2
+       track_uptake2 = track_uptake_temp .+ dt/2 .* track_uptake2
 
        # Third calculation
-       track_dpdt3, track_dbdt3, track_dzdt3, track_dndt3, track_dddt3, track_dodt3 = one_step_ecof(
+       track_dpdt3, track_dbdt3, track_dzdt3, track_dndt3, track_dddt3, track_dodt3, track_uptake3 = one_step_ecof(
            track_p2, track_b2, track_z2, track_n2, track_d2, track_o2, params, II, JJ)
 
        # Collect tendency over timestep
-       track_p3 = track_p_temp .+ dt .* track_dpdt3
-       track_b3 = track_b_temp .+ dt .* track_dbdt3
-       track_z3 = track_z_temp .+ dt .* track_dzdt3
-       track_n3 = track_n_temp .+ dt .* track_dndt3
-       track_d3 = track_d_temp .+ dt .* track_dddt3
-       track_o3 = track_o_temp .+ dt .* track_dodt3
+       track_p3      = track_p_temp      .+ dt .* track_dpdt3
+       track_b3      = track_b_temp      .+ dt .* track_dbdt3
+       track_z3      = track_z_temp      .+ dt .* track_dzdt3
+       track_n3      = track_n_temp      .+ dt .* track_dndt3
+       track_d3      = track_d_temp      .+ dt .* track_dddt3
+       track_o3      = track_o_temp      .+ dt .* track_dodt3
+       track_uptake3 = track_uptake_temp .+ dt .* track_uptake3
 
        # Fourth calculation
-       track_dpdt4, track_dbdt4, track_dzdt4, track_dndt4, track_dddt4, track_dodt4 = one_step_ecof(
+       track_dpdt4, track_dbdt4, track_dzdt4, track_dndt4, track_dddt4, track_dodt4, track_uptake4 = one_step_ecof(
            track_p3, track_b3, track_z3, track_n3, track_d3, track_o3, params, II, JJ)
 
        # Apply Runge-Kutta formula to the 4 calculations
-       track_p_temp .+= (track_dpdt1 .+ 2 .* track_dpdt2 .+ 2 .* track_dpdt3 .+ track_dpdt4) .* (dt / 6)
-       track_b_temp .+= (track_dbdt1 .+ 2 .* track_dbdt2 .+ 2 .* track_dbdt3 .+ track_dbdt4) .* (dt / 6)
-       track_z_temp .+= (track_dzdt1 .+ 2 .* track_dzdt2 .+ 2 .* track_dzdt3 .+ track_dzdt4) .* (dt / 6)
-       track_n_temp .+= (track_dndt1 .+ 2 .* track_dndt2 .+ 2 .* track_dndt3 .+ track_dndt4) .* (dt / 6)
-       track_d_temp .+= (track_dddt1 .+ 2 .* track_dddt2 .+ 2 .* track_dddt3 .+ track_dddt4) .* (dt / 6)
-       track_o_temp .+= (track_dodt1 .+ 2 .* track_dodt2 .+ 2 .* track_dodt3 .+ track_dodt4) .* (dt / 6)
+       track_p_temp      .+= (track_dpdt1   .+ 2 .* track_dpdt2   .+ 2 .* track_dpdt3   .+ track_dpdt4)   .* (dt / 6)
+       track_b_temp      .+= (track_dbdt1   .+ 2 .* track_dbdt2   .+ 2 .* track_dbdt3   .+ track_dbdt4)   .* (dt / 6)
+       track_z_temp      .+= (track_dzdt1   .+ 2 .* track_dzdt2   .+ 2 .* track_dzdt3   .+ track_dzdt4)   .* (dt / 6)
+       track_n_temp      .+= (track_dndt1   .+ 2 .* track_dndt2   .+ 2 .* track_dndt3   .+ track_dndt4)   .* (dt / 6)
+       track_d_temp      .+= (track_dddt1   .+ 2 .* track_dddt2   .+ 2 .* track_dddt3   .+ track_dddt4)   .* (dt / 6)
+       track_o_temp      .+= (track_dodt1   .+ 2 .* track_dodt2   .+ 2 .* track_dodt3   .+ track_dodt4)   .* (dt / 6)
+       track_uptake_temp .+= (track_uptake1 .+ 2 .* track_uptake2 .+ 2 .* track_uptake3 .+ track_uptake4) .* (dt / 6)
        
        # If timestep belongs to number of output records, record the values
        if mod(t, trec)==0
-            j = Int(t÷trec + 1)
+            j = Int(t/trec + 1)
             t_id = t.*dt
-            track_p[:,:,j] .= track_p_temp
-            track_b[:,:,j] .= track_b_temp 
-            track_z[:,:,j] .= track_z_temp 
-            track_n[:,:,j] .= track_n_temp 
-            track_d[:,:,j] .= track_d_temp
-            track_o[:,:,j] .= track_o_temp
-            track_time[j] = t_id 
+            track_p[:,:,j]      .= track_p_temp
+            track_b[:,:,j]      .= track_b_temp 
+            track_z[:,:,j]      .= track_z_temp 
+            track_n[:,:,j]      .= track_n_temp 
+            track_d[:,:,j]      .= track_d_temp
+            track_o[:,:,j]      .= track_o_temp
+            track_uptake[:,:,j] .= track_uptake_temp
+            track_time[j]        = t_id 
 
             # Announce recording of results (then record it in log file)
             @printf("Day %7.1f out of %5.0f = %4.0f%% done at %s \n", 
@@ -158,7 +166,7 @@ function run_npzdb(params)
     # Write files--save after a loop for now. 
     if params.fsave == "missing"
     else
-        savetoNC(fsaven, track_p, track_b, track_z, track_n, track_d, track_o,  tst, tfn, params)
+        savetoNC(fsaven, track_p, track_b, track_z, track_n, track_d, track_o,  tst, tfn, params, track_uptake)
     end
     return track_p_temp, track_b_temp, track_z_temp, track_n_temp, track_d_temp, track_o_temp
 end
@@ -178,12 +186,13 @@ function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record loca
     dndt = DIFF(n, kappa_z, dz) .- UPWIND(n, w, dz)
     dddt = DIFF(d, kappa_z, dz) .- UPWIND(d, wd, dz) # upwind is for sinking term
     dodt = DIFF(o, kappa_z, dz) .- UPWIND(o, w, dz)
-
+   
+    uptake_out   = zeros(params.number_box, params.np)
     d_gain_total = zeros(params.number_box) # collect OM and then distribute into diff OM pools
 
     #(below is biological term = growth, nutrient uptake, loss):
     #phytoplankton
-    for j = 1:np
+    for j = 1:params.np
 
         #growth and loss:
         #should do a more complicated N limitation, but OK for now:
@@ -199,6 +208,7 @@ function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record loca
         dodt += uptake*params.e_o # oxygen excretion, e_o in input_traits (use Redfield ratio for now), related to how much O2 is produced per phyto growth, 
         dpdt[:,j] += uptake - mort # uptake * 1/y = growth of biomass, but y = 1 for phyto, no reminerilization.
         d_gain_total += mort #addition to total mortality
+        uptake_out[:,j] = uptake 
 
     end
 
@@ -332,16 +342,27 @@ function one_step_ecof(p, b, z, n, d, o, params, II, JJ) # II and JJ record loca
     #split accumulated OM into nd pools according to probability of generation, now it is 50%, 50%
     dddt += d_gain_total .* transpose(prob_generate_d)
 
-    ##oxygen
+    #oxygen
+    dodt[1] += params.koverh.*(params.o2sat .- o[1]) # air-sea flux
+    dodt += params.t_o2relax.*(params.o2_obs .- o)   # O2 relaxation via lateral flux, entire profile (if t_o2relax = 0, do nothing)
     #dodt[1:params.mlboxes] += params.koverh.*(params.o2sat .- o[1:params.mlboxes]) # ! (may need to change with Emily) oxygen input from air-sea
-    dodt[1] += params.koverh.*(params.o2sat .- o[1]) #update to r
-    #dodt += params.t_o2relax.*(params.o2_deep .- o) #O2 relaxation via lateral flux, not only to the bottom box, but to all boxes
-    dodt[end] += params.t_o2relax.*(params.o2_deep .- o[end]) #O2 relaxation via lateral flux, only to the bottom box.
-    ##Xin add(09/2023): N2O and N2
-    dndt[1,4] += params.koverh.*(0.0122 .- dndt[1,4])#N2O in the 1st box (i.e., surface)
-    dndt[1,5] += params.koverh.*(385.7*2 .- dndt[1,5])#N2 in the 1st box (i.e., surface)
+    #dodt[end] += params.t_o2relax.*(params.o2_deep .- o[end]) #O2 relaxation via lateral flux, only to the bottom box.
     
-    return dpdt, dbdt, dzdt, dndt, dddt, dodt
+    #N2O and N2 air-sea flux
+    dndt[1,4] += params.koverh.*(0.0122  .- dndt[1,4]) #N2O in the 1st box (i.e., surface)
+    dndt[1,5] += params.koverh.*(385.7*2 .- dndt[1,5]) #N2  in the 1st box (i.e., surface)
+
+    #no3
+    dndt[:,3] += params.t_no3relax.*(params.no3_obs .- dndt[:,3]) # NO3 relaxation via lateral flux, entire profil (if t_no3relax = 0, do nothing)
+
+    # add bottom forcing for all N tracers
+    # (upwelling velocity (m/s) / depth of cell (m)) * conc diff
+    dndt[end,1] += (params.w[end-2]/params.dz).*(params.nh4_obs[end] .- n[end,1]) 
+    dndt[end,2] += (params.w[end-2]/params.dz).*(params.no2_obs[end] .- n[end,2]) 
+    dndt[end,3] += (params.w[end-2]/params.dz).*(params.no3_obs[end] .- n[end,3]) 
+    dndt[end,4] += (params.w[end-2]/params.dz).*(params.n2o_obs[end] .- n[end,4]) 
+   
+    return dpdt, dbdt, dzdt, dndt, dddt, dodt, uptake_out
 end
 
 #################################################################################
@@ -372,7 +393,7 @@ end
 #################################################################################
 # Netcdf writing function 
 #################################################################################
-function savetoNC(fsaven, p, b, z, n, d, o, tst, tfn, params)
+function savetoNC(fsaven, p, b, z, n, d, o, tst, tfn, params, uptake)
 
     println("Saving to: ",fsaven)
     
@@ -385,7 +406,7 @@ function savetoNC(fsaven, p, b, z, n, d, o, tst, tfn, params)
     total_tt = Int(params.tt+1) #bc i added time 0
 
     # define the dim of p, b, z, n, d
-    defDim(f, "np", params.np)
+    defDim(f,"np",params.np)
     defDim(f,"nb",params.nb)
     defDim(f,"nz",params.nz)
     defDim(f,"nn",params.nn)
@@ -435,9 +456,12 @@ function savetoNC(fsaven, p, b, z, n, d, o, tst, tfn, params)
     # w[:,:,:] = v
     # w.attrib["units"] = "per d; specific uptake matrix with PA impact"
     
-    # w = defVar(f,"uptake",Float64,("nd","nb"))
-    # w[:,:,:] = uptake
+    #w = defVar(f,"uptake",Float64,("nd","nb"))
+    #w[:,:,:] = uptake
     # w.attrib["units"] = "mmol/m3 C per d; uptake matrix"
+     w = defVar(f,"uptake",Float64,("ndepth" ,"np","nrec"))
+     w[:,:,:] = uptake
+     w.attrib["units"] = "mmol/m3 C per d; uptake matrix"
     
     w = defVar(f,"pIC",Float64,("ndepth","np"))
     w[:,:] = params.pIC
@@ -459,7 +483,10 @@ function savetoNC(fsaven, p, b, z, n, d, o, tst, tfn, params)
     w[:,:] = params.dIC
     w.attrib["units"] = "mmol/m3 C OM"
     
-    
+    w = defVar(f,"oIC",Float64,("ndepth","nd"))
+    w[:,:] = params.oIC
+    w.attrib["units"] = "mmol/m3 O2"
+
     # w = defVar(f, "Ctot", Float64, ("nrec",))
     # w[:] = Ctot
     # w.attrib["units"] = "mmol/m3 total C"
@@ -480,7 +507,6 @@ function savetoNC(fsaven, p, b, z, n, d, o, tst, tfn, params)
     # w[:,:] = PAall 
     # w.attrib["units"] = "Ind C supply weight: over time"
 
-    
     # w = defVar(f,"pen",Float64,("nb",))
     # w[:,:] = params.pen
     # w.attrib["units"] = "penalty"

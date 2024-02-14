@@ -88,12 +88,16 @@ if finput == "newIC"
     zIC = Array{Float64, 2}(undef, ngrid, nz) # the initial biomass condition for the nz z for all boxes at time 0
     zIC = fill!(zIC, 0.1)
     nIC = Array{Float64, 2}(undef, ngrid, nn) # the initial concentration condition for the nn n for all boxes at time 0
-    nIC = fill!(nIC, 0.001)
-    nIC[:,3] .= 30 #fill NO3 only, the order of nutrients; the  . matches different dimension: means sign the entire vector to a number
+    #nIC = fill!(nIC, 0.001)
+    nIC[:,1] = nh4_obs # set to Bianchi N tracer obs 
+    nIC[:,2] = no2_obs # set to Bianchi N tracer obs
+    nIC[:,3] = no3_obs # set to WOA-18 
+    nIC[:,4] = n2o_obs # set to Bianchi N tracer obs (convert)
+    nIC[:,5] .= 0
     dIC = Array{Float64, 2}(undef, ngrid, nd) # the initial condition for the nd d for all boxes at time 0
     dIC = fill!(dIC, 0.001)
     oIC = Array{Float64, 2}(undef, ngrid, 1) # the initial condition for the nd d for all boxes at time 0
-    oIC = fill!(oIC, 10) #oxygenated
+    oIC = o2_obs # set to WOA-18
 else
     println("Loading IC from: ",finput) # input from an output of a previous run.
     ds = NCDataset(folder*finput)

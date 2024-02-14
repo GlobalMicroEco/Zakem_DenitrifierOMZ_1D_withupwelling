@@ -9,9 +9,9 @@
 Requires the Julia programming language
 
 ## Updates
-* 12/2023 -- First commit of MicrOMZ 
-* 08/10/23: need to add w to param struct (only wd there now)
+* 12/01/23: First commit of MicrOMZ 
 * 12/07/23: DM - reorganized file structure (out, plots, data directories, etc.)
+* 08/10/23: need to add w to param struct (only wd there now)
 * 08/10/23: need to add w to param struct (only wd there now)
 * 03/01/23: EJZtinkering beings
 * 02/02/23: version to send to Xin Sun
@@ -28,7 +28,7 @@ Requires the Julia programming language
 #### Update the settings in the model 
 	Edit 'settings.jl' to toggle user-specific settings (see below) 
 #### Run the model
-        include("run_model.jl")
+    include("run_model.jl")
 
 ## Code structure 
 #### settings.jl 
@@ -62,5 +62,6 @@ Requires the Julia programming language
 	Folder containing post-run plotting scripts
         
 ## Support
-Contact Daniel McCoy, Xin Sun, or Emily Zakem at Carnegie Science 
+Contact Daniel McCoy, Xin Sun, or Emily Zakem at Carnegie Science for Science 
+dmccoy@carnegiescience.edu
 
